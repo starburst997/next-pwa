@@ -29,6 +29,7 @@ module.exports = (nextConfig = {}) => ({
     // https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-webpack-plugin.GenerateSW
     const {
       disable = false,
+      enableOffline = !dev,
       register = true,
       dest = distDir,
       sw = 'sw.js',
@@ -190,13 +191,13 @@ module.exports = (nextConfig = {}) => ({
       const prefix = config.output.publicPath ? `${config.output.publicPath}static/` : 'static/'
       const workboxCommon = {
         swDest: path.join(_dest, sw),
-        additionalManifestEntries: dev ? [] : manifestEntries,
+        additionalManifestEntries: !enableOffline ? [] : manifestEntries,
         exclude: [
           ({ asset, compilation }) => {
             if (asset.name.match(/^(build-manifest\.json|react-loadable-manifest\.json)$/)) {
               return true
             }
-            if (dev && !asset.name.startsWith('static/runtime/')) {
+            if (!enableOffline && !asset.name.startsWith('static/runtime/')) {
               return true
             }
             if (experimental.modern /* modern */) {
@@ -240,7 +241,7 @@ module.exports = (nextConfig = {}) => ({
           })
         )
       } else {
-        if (dev) {
+        if (!enableOffline) {
           console.log(
             '> [PWA] Build in develop mode, cache and precache are mostly disabled. This means offline support is disabled, but you can continue developing other functions in service worker.'
           )
